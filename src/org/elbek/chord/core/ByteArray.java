@@ -1,5 +1,7 @@
 package org.elbek.chord.core;
 
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -64,12 +66,13 @@ public class ByteArray {
     }
 
     static ByteArray from(InputStream input) throws IOException {
+        DataInputStream dis = new DataInputStream(new BufferedInputStream(input));
         byte[] bytes = new byte[4];
-        ByteReadWriter.read(bytes, input);
+        dis.readFully(bytes);
         ByteArray byteArray = new ByteArray(bytes);
         int len = ByteReadWriter.readInt(byteArray);
         bytes = new byte[len];
-        ByteReadWriter.read(bytes, input);
+        dis.readFully(bytes);
         byteArray.setPosition(4); //since we already wrote 4 bytes
         byteArray.write(bytes);
         byteArray.setPosition(0); //set position to 0 to make it ready for read

@@ -56,7 +56,7 @@ public class Stabilizer {
                 }
             }
             try (Socket socket = successor.newSocket()) {
-                //SocketClientHelper.sentMessage(TaskRunner.TASKS.PREDECESSOR_UPDATE, node.self.toByte(), socket, false);
+                SocketClientHelper.sentMessage(TaskRunner.TASKS.PREDECESSOR_UPDATE, node.self.toByte(), socket, false);
             }
         }
     }

@@ -68,7 +68,7 @@ public class NodeStarter {
                     e.printStackTrace();
                 }
             }
-        }, 2, 30, TimeUnit.SECONDS);
+        }, 20, 5, TimeUnit.SECONDS);
 
         fixFingerService.scheduleWithFixedDelay(new Runnable() {
             @Override

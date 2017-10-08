@@ -1,8 +1,6 @@
 package org.elbek.chord.core;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 
 /**
@@ -22,11 +20,11 @@ public class TaskRunner implements Runnable {
         try {
             //clientSocket.setSoTimeout(1000 * 60 * 5);
             input = clientSocket.getInputStream();
-            int len = ByteReadWriter.readInt(input);
+            DataInputStream dis = new DataInputStream(new BufferedInputStream(input));
+            int len = dis.readInt();
             Logger.debug("message len came:" + len);
             byte bytes[] = new byte[len];
-            ByteReadWriter.read(bytes, input);
-
+            dis.readFully(bytes);
             ByteArray byteArray = new ByteArray(bytes);
             int keepAliveFlag = byteArray.read();
 
@@ -43,6 +41,7 @@ public class TaskRunner implements Runnable {
             TASKS taskEnum = TASKS.find(task);
             assert taskEnum != null;
             Logger.debug(String.format("%s task came from %s", taskEnum.name(), new String(hostData)) + " len=" + len);
+
             switch (taskEnum) {
                 case OK:
                     String message = "OK";
@@ -83,7 +82,7 @@ public class TaskRunner implements Runnable {
                 if (output != null) {
                     output.flush();
                 }
-//                clientSocket.close();
+                clientSocket.close();
             } catch (IOException ignore) {
 
             }
