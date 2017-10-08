@@ -40,13 +40,13 @@ public class FingerTable {
         return node.fingerTable.socketTaskRunnerMap.get(referenceNode);
     }
 
-    SocketTaskRunner putSocketRunner(ReferenceNode referenceNode, SocketTaskRunner socketTaskRunner) {
-        return node.fingerTable.socketTaskRunnerMap.put(referenceNode, socketTaskRunner);
+    void putSocketRunner(ReferenceNode referenceNode, SocketTaskRunner socketTaskRunner) {
+        node.fingerTable.socketTaskRunnerMap.put(referenceNode, socketTaskRunner);
     }
 
-    SocketTaskRunner removeSocketRunner(ReferenceNode referenceNode) {
+    void removeSocketRunner(ReferenceNode referenceNode) {
         Logger.debug("removing SocketTaskRunner for " + referenceNode);
-        return node.fingerTable.socketTaskRunnerMap.remove(referenceNode);
+        node.fingerTable.socketTaskRunnerMap.remove(referenceNode);
     }
 
     public void close() throws IOException {

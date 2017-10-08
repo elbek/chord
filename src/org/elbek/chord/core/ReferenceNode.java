@@ -3,6 +3,8 @@ package org.elbek.chord.core;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 
 /**
  * Created by elbek on 9/10/17.
@@ -58,5 +60,11 @@ public class ReferenceNode {
                 ", port=" + port +
                 ", id=" + id +
                 '}';
+    }
+
+    public Socket newSocket() throws IOException {
+        Socket socket = new Socket();
+        socket.connect(new InetSocketAddress(host, port));
+        return socket;
     }
 }

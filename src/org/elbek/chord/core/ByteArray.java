@@ -2,6 +2,7 @@ package org.elbek.chord.core;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 /**
  * Created by elbek on 10/7/17.
@@ -77,5 +78,13 @@ public class ByteArray {
 
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    @Override
+    public String toString() {
+        return "ByteArray{" +
+                "bytes=" + Arrays.toString(bytes) +
+                ", position=" + position +
+                '}';
     }
 }

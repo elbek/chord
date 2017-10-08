@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Created by elbek on 9/10/17.
@@ -41,7 +42,7 @@ public class Node implements Runnable {
         openServerSocket();
         stopped = false;
         while (!isStopped()) {
-            Socket clientSocket = null;
+            Socket clientSocket;
             try {
                 clientSocket = this.serverSocket.accept();
             } catch (IOException e) {
@@ -51,7 +52,9 @@ public class Node implements Runnable {
                 }
                 throw new RuntimeException("Error accepting core connection", e);
             }
-            this.threadPool.execute(new TaskRunner(clientSocket));
+//            this.threadPool.execute(new TaskRunner(clientSocket));
+//            System.out.println(this.threadPool.toString());
+            new Thread(new TaskRunner(clientSocket)).start();
         }
         this.threadPool.shutdown();
         System.out.println("Server Stopped.");
@@ -84,19 +87,7 @@ public class Node implements Runnable {
 
     public synchronized void setPredecessor(ReferenceNode predecessor) throws IOException {
         if (!predecessor.equals(this.predecessor)) {
-            ReferenceNode old = this.predecessor;
             this.predecessor = predecessor;
-            if (!predecessor.equals(self)) {
-                Socket socket = new Socket();
-                socket.connect(new InetSocketAddress(this.predecessor.host, this.predecessor.port));
-                SocketTaskRunner socketTaskRunner = new SocketTaskRunner(socket, predecessor);
-                submit(socketTaskRunner);
-                fingerTable.putSocketRunner(this.predecessor, socketTaskRunner);
-            }
-            SocketTaskRunner socketRunner = fingerTable.getSocketRunner(old);
-            if (socketRunner != null) {
-                socketRunner.stop();
-            }
             Logger.debug("updated predecessor to: " + predecessor);
         }
     }
@@ -106,22 +97,7 @@ public class Node implements Runnable {
     }
 
     public synchronized void setSuccessor(ReferenceNode successor) throws IOException {
-        ReferenceNode old = fingerTable.table[0].successor;
-        if (!successor.equals(self)) { //if this is not us
-            Socket socket = new Socket();
-            socket.connect(new InetSocketAddress(successor.host, successor.port));
-            SocketTaskRunner socketTaskRunner = new SocketTaskRunner(socket, successor);
-            submit(socketTaskRunner);
-            fingerTable.putSocketRunner(successor, socketTaskRunner);
-        }
         fingerTable.table[0].successor = successor;
-        if (!old.equals(self)) {
-            SocketTaskRunner socketRunner = fingerTable.getSocketRunner(old);
-            if (socketRunner != null) {
-                socketRunner.stop();
-                fingerTable.removeSocketRunner(old);
-            }
-        }
         Logger.debug("updated successor to: " + successor);
     }
 

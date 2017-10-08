@@ -51,7 +51,7 @@ public class ClientHelper {
             byteArray.writeInt(message.length);
             byteArray.write(message);
         }
-        System.out.println("sending task :"+tasks.name() + " to "+String.format("%s:%d", socket.getInetAddress().getHostName(), socket.getPort())+" size "+ byteArray.size());
+        System.out.println("sending task :" + tasks.name() + " to " + String.format("%s:%d", socket.getInetAddress().getHostName(), socket.getPort()) + " size " + byteArray.size());
         OutputStream out = socket.getOutputStream();
         ByteReadWriter.writeInt(out, byteArray.size());
         out.write(byteArray.getBytes(), 0, byteArray.size());

@@ -13,7 +13,7 @@ public class FingerTableHelper {
         if (id.equals(node.id)) { //if id is node id, then this node is successor
             return node.self;
         }
-        ReferenceNode predecessor = findPredecessor(node, id);
+        ReferenceNode predecessor = findPredecessor(node, id); //TODO, this may return null, handle it properly
         //check if found predecessor is our predecessor
         if (predecessor == node.predecessor) {
             return node.self;
@@ -23,38 +23,13 @@ public class FingerTableHelper {
         if (predecessor == node.self) {
             return node.getSuccessor();
         }
-        SocketTaskRunner socketRunner = node.fingerTable.getSocketRunner(predecessor);
-        final ReferenceNode[] successor = new ReferenceNode[1];
-        Socket newSocket = null;
-        try {
-            if (socketRunner == null) {
-                newSocket = new Socket(predecessor.host, predecessor.port);
-                SocketClientHelper.sentMessage(TaskRunner.TASKS.RETRIEVE_SUCCESSOR, predecessor.id.toByteArray(), newSocket, false);
-                ByteArray byteArray = ByteArray.from(newSocket.getInputStream());
-                successor[0] = ReferenceNode.read(byteArray);
-            } else {
-                CountDownLatch countDownLatch = new CountDownLatch(1);
-                socketRunner.add(new SocketTaskRunner.SocketTask(countDownLatch) {
-                    @Override
-                    void doIt(Socket socket) throws IOException {
-                        SocketClientHelper.sentMessage(TaskRunner.TASKS.RETRIEVE_SUCCESSOR, predecessor.id.toByteArray(), socket, false);
-                        ByteArray byteArray = ByteArray.from(socket.getInputStream());
-                        successor[0] = ReferenceNode.read(byteArray);
-                    }
-                });
-                try {
-                    countDownLatch.await();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-        } finally {
-            if (newSocket != null) {
-                newSocket.close();
-            }
+        ReferenceNode successor;
+        try (Socket socket = predecessor.newSocket()) {
+            SocketClientHelper.sentMessage(TaskRunner.TASKS.RETRIEVE_SUCCESSOR, predecessor.id.toByteArray(), socket, false);
+            ByteArray byteArray = ByteArray.from(socket.getInputStream());
+            successor = ReferenceNode.read(byteArray);
         }
-        return successor[0];
+        return successor;
 
     }
 
@@ -69,7 +44,6 @@ public class FingerTableHelper {
             return node.self;
         }
 
-        final ReferenceNode[] predecessorNode = new ReferenceNode[1];
         FingerTable.Entry entry;
         entry = closestPrecedingFinger(node, id);
         assert entry != null;
@@ -77,25 +51,12 @@ public class FingerTableHelper {
         if (entry.successor == node.self) {
             return node.predecessor;
         }
-        SocketTaskRunner socketRunner = node.fingerTable.getSocketRunner(entry.successor);
-        assert socketRunner != null;
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        socketRunner.add(new SocketTaskRunner.SocketTask(countDownLatch) {
-            @Override
-            void doIt(Socket socket) throws IOException {
-                SocketClientHelper.sentMessage(TaskRunner.TASKS.PREDECESSOR_FINDER, id.toByteArray(), socket, true);
-                ByteArray byteArray = ByteArray.from(socket.getInputStream());
-                predecessorNode[0] = ReferenceNode.read(byteArray);
-            }
-        });
-        try {
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return predecessorNode[0];
+        try(Socket socket = entry.successor.newSocket()) {
+            SocketClientHelper.sentMessage(TaskRunner.TASKS.PREDECESSOR_FINDER, id.toByteArray(), socket, false);
+            ByteArray byteArray = ByteArray.from(socket.getInputStream());
+            return ReferenceNode.read(byteArray);
 
+        }
     }
 
     public static FingerTable.Entry closestPrecedingFinger(Node node, BigInteger id) {
