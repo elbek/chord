@@ -1,7 +1,6 @@
 package org.elbek.chord.core;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -28,7 +27,6 @@ public class ReferenceNode {
 
     public static ReferenceNode read(ByteArray byteArray) throws IOException {
         int len = ByteReadWriter.readInt(byteArray);
-        System.out.println(len);
         byte[] b = new byte[len];
         byteArray.read(b);
         return fromByte(b);

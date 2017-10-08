@@ -18,11 +18,14 @@ public class CommandFactory {
 
             case "j":
                 return new JoinCommand();
+
+            case "l":
+                return new LookUpCommand();
         }
         return null;
     }
 
-    public static String help(){
-        return "Valid commands are: h, s, c, j";
+    public static String help() {
+        return "Valid commands are: h, s, c, j, l";
     }
 }

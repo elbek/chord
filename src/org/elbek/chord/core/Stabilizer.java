@@ -28,7 +28,7 @@ public class Stabilizer {
         }
         for (int i = 0; i < node.fingerTable.table.length; i++) {
             FingerTable.Entry entry = node.fingerTable.table[i];
-            try(Socket socket = node.predecessor.newSocket()) {
+            try (Socket socket = node.predecessor.newSocket()) {
                 SocketClientHelper.sentMessage(TaskRunner.TASKS.SUCCESSOR_FINDER, entry.start.toByteArray(), socket, false);
                 ByteArray byteArray = ByteArray.from(socket.getInputStream());
                 ReferenceNode newOne = ReferenceNode.read(byteArray);
@@ -36,7 +36,7 @@ public class Stabilizer {
                     entry.successor = newOne;
                 }
             }
-            Thread.sleep(500); //do not hammer the socket runner with fixing, it is not that often updates happen
+            Thread.sleep(1000); //do not hammer the socket runner with fixing, it is not that often updates happen
         }
     }
 
@@ -44,7 +44,11 @@ public class Stabilizer {
         ReferenceNode successor = node.getSuccessor();
         boolean selfSuccessor = successor.equals(node.self);
         if (selfSuccessor) {
-            return; //TODO, figure out what to do here
+            ReferenceNode newSuccessor = node.predecessor;
+            //check if new successor is between self and successor, if this is not ourselves
+            if (Util.isInRange(node.id, node.getSuccessor().id, newSuccessor.id, false, false)) { //TODO, we should do this atomic
+                node.setSuccessor(newSuccessor);
+            }
         } else {
             try (Socket socket = successor.newSocket()) {
                 SocketClientHelper.sentMessage(TaskRunner.TASKS.RETRIEVE_PREDECESSOR, successor.id.toByteArray(), socket, false);
@@ -55,9 +59,9 @@ public class Stabilizer {
                     node.setSuccessor(newSuccessor);
                 }
             }
-            try (Socket socket = successor.newSocket()) {
-                SocketClientHelper.sentMessage(TaskRunner.TASKS.PREDECESSOR_UPDATE, node.self.toByte(), socket, false);
-            }
+        }
+        try (Socket socket = successor.newSocket()) {
+            SocketClientHelper.sentMessage(TaskRunner.TASKS.PREDECESSOR_UPDATE, node.self.toByte(), socket, false);
         }
     }
 }
