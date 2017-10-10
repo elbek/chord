@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 /**
+ * looks up host name and port for given key, key must be hash value of bytes that client is looking for
  * Created by elbek on 9/21/17.
  */
 public class LookUpCommand extends Command {

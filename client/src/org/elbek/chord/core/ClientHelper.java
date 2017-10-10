@@ -1,9 +1,6 @@
 package org.elbek.chord.core;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 
 /**
@@ -60,9 +57,10 @@ public class ClientHelper {
     }
 
     public static byte[] read(Socket socket) throws IOException {
-        int len = ByteReadWriter.readInt(socket.getInputStream());
+        DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+        int len = dis.readInt();
         byte[] b = new byte[len];
-        ByteReadWriter.read(b, socket.getInputStream());
+        dis.read(b); //TODO, we should check returned integer here, if -1 we should act right for this exception case
         return b;
     }
 

@@ -18,6 +18,7 @@ public class SocketRunner implements Runnable {
     private volatile boolean stop = false;
     private BlockingDeque<SocketTask> tasks = new LinkedBlockingDeque<>();
 
+    //this creates new socket, thus creating new thread on the server side, create this object with care
     public SocketRunner(ReferenceNode referenceNode) throws IOException {
         this.socket = referenceNode.newSocket();
         this.referenceNode = referenceNode;
@@ -80,7 +81,7 @@ public class SocketRunner implements Runnable {
     /**
      * add task to task queue
      * returns true if it was able to add, false if socket is already stopped
-     * To add properly use {@link SocketRunner#add(ReferenceNode, SocketTask)} method
+     * To add properly use {@link SocketRunner#add(Resolver, SocketTask)} method
      *
      * @param task
      * @return
@@ -156,9 +157,12 @@ public class SocketRunner implements Runnable {
                 continue;
             }
             if (resolvedNode.isSelfNode()) { //looks like no socket needed
-                socketTask.doIt(null, resolvedNode);
-                if (socketTask.latch != null) {
-                    socketTask.latch.countDown();
+                try {
+                    socketTask.doIt(null, resolvedNode);
+                } finally {
+                    if (socketTask.latch != null) {
+                        socketTask.latch.countDown();
+                    }
                 }
                 break;
             }

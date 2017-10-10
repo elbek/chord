@@ -32,7 +32,7 @@ public class Stabilizer {
                 node.getSocketManager().swap(entry.successor, newOne);
                 entry.successor = newOne;
             }
-            Thread.sleep(1000); //do not hammer the socket runner with fixing, it is not that often updates happen
+            Thread.sleep(500); //do not hammer the socket runner with fixing, it is not that often updates happen
         }
     }
 
@@ -45,13 +45,13 @@ public class Stabilizer {
      * @throws IOException
      */
     static void stabilize(Node node) throws IOException {
-        CountDownLatch countDownLatch = new CountDownLatch(1);
+        CountDownLatch latch = new CountDownLatch(1);
         SocketRunner.add(new SocketRunner.Resolver() {
             @Override
             public ReferenceNode resolve() {
                 return node.getSuccessor();
             }
-        }, new SocketRunner.SocketTask(countDownLatch) {
+        }, new SocketRunner.SocketTask(latch) {
             @Override
             void doIt(Socket socket, ReferenceNode resolvedNode) throws IOException {
 
@@ -74,26 +74,30 @@ public class Stabilizer {
             }
         });
         try {
-            countDownLatch.await();
+            latch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
             //we are just one call away, keep going.
         }
 
-        countDownLatch = new CountDownLatch(1);
+        latch = new CountDownLatch(1);
         SocketRunner.add(new SocketRunner.Resolver() {
             @Override
             public ReferenceNode resolve() {
                 return node.getSuccessor();
             }
-        }, new SocketRunner.SocketTask(countDownLatch) {
+        }, new SocketRunner.SocketTask(latch) {
             @Override
             void doIt(Socket socket, ReferenceNode resolvedNode) throws IOException {
-                SocketClientHelper.sentMessage(TaskRunner.TASKS.PREDECESSOR_UPDATE, node.self.toByte(), socket, true);
+                if (socket == null) {
+                    //TODO, we should figure out what to do when socket is self node
+                } else {
+                    SocketClientHelper.sentMessage(TaskRunner.TASKS.PREDECESSOR_UPDATE, node.self.toByte(), socket, true);
+                }
             }
         });
         try {
-            countDownLatch.await();
+            latch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -29,7 +29,7 @@ public class SocketClientHelper {
         byteArray.write(tasks.getTaskId());
         ByteReadWriter.writeInt(byteArray, message.length);
         byteArray.write(message);
-        Logger.debug("sending task :" + tasks.name() + " to " + String.format("%s:%d", socket.getInetAddress().getHostName(), socket.getPort()) + " byte array " + byteArray);
+        Logger.debug("sending task :" + tasks.name() + " to " + String.format("%s:%d", socket.getInetAddress().getHostName(), socket.getPort()));
 
         DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
         dos.writeInt(byteArray.size());

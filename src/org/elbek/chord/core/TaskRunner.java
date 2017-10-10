@@ -2,6 +2,7 @@ package org.elbek.chord.core;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 
 /**
  * Created by elbek on 9/10/17.
@@ -24,7 +25,12 @@ public class TaskRunner implements Runnable {
                 input = clientSocket.getInputStream();
                 DataInputStream dis = new DataInputStream(new BufferedInputStream(input));
                 output = new DataOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
-                int len = dis.readInt();
+                int len;
+                try {
+                    len = dis.readInt();
+                } catch (EOFException | SocketException e) {  //oo, client closed the socket, stop this thread
+                    break;
+                }
                 Logger.debug("message len came:" + len);
                 byte bytes[] = new byte[len];
                 dis.readFully(bytes);
@@ -33,6 +39,7 @@ public class TaskRunner implements Runnable {
 
                 if (keepAliveFlag != 1) {
                     assert keepAliveFlag == 2 : "keeAliveFlag is invalid, got=" + keepAliveFlag;
+                    System.out.println("breaking this after this run");
                     broken = true;
                 }
                 int hostDataLen = byteArray.read();

@@ -17,6 +17,7 @@ public class SocketRunnerManager {
     void add(ReferenceNode newNode) throws IOException {
         assert !socketRunnerMap.containsKey(newNode) : newNode + " already exists in socket manager";
         SocketRunner newSocketRunner = new SocketRunner(newNode);
+        NodeStarter.systemNode.execute(newSocketRunner);
         socketRunnerMap.put(newNode, newSocketRunner);
     }
 
@@ -34,8 +35,11 @@ public class SocketRunnerManager {
      * @throws IOException
      */
     void swap(ReferenceNode oldNode, ReferenceNode newNode) throws IOException {
-        SocketRunner newSocketRunner = new SocketRunner(newNode);
-        socketRunnerMap.put(newNode, newSocketRunner);
+        if (!socketRunnerMap.containsKey(newNode)) {
+            SocketRunner newSocketRunner = new SocketRunner(newNode);
+            NodeStarter.systemNode.execute(newSocketRunner);
+            socketRunnerMap.putIfAbsent(newNode, newSocketRunner);
+        }
         SocketRunner oldSocketRunner = socketRunnerMap.remove(oldNode);
         if (oldSocketRunner != null) {
             oldSocketRunner.stop();

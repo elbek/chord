@@ -22,7 +22,7 @@ public class PredecessorFinderTask extends BaseTask { //TODO
             ReferenceNode referenceNode = FingerTableHelper.findPredecessor(id);
             byte[] bytes = referenceNode.toByte();
             output.writeInt(bytes.length);
-            System.out.println("sending back:" + bytes.length + " class :" + this.getClass().getSimpleName() + " data "+ Arrays.toString(bytes));
+            System.out.println("sending back:" + bytes.length + " class :" + this.getClass().getSimpleName());
             output.write(bytes);
         } catch (IOException e) {
             e.printStackTrace();

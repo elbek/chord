@@ -79,7 +79,7 @@ public class NodeStarter {
                     e.printStackTrace();
                 }
             }
-        }, 120, 120, TimeUnit.SECONDS);
+        }, 60, 60, TimeUnit.SECONDS);
     }
 
     private static void printHelp() {

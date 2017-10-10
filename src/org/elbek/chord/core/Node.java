@@ -53,6 +53,7 @@ public class Node implements Runnable {
                 throw new RuntimeException("Error accepting core connection", e);
             }
             execute(new TaskRunner(clientSocket));
+            System.out.println(threadPool);
         }
         this.threadPool.shutdown();
         System.out.println("Server Stopped.");
