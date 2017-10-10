@@ -1,5 +1,6 @@
 package org.elbek.chord.core;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
@@ -10,12 +11,12 @@ import java.util.Arrays;
 public class PredecessorRetrieverTask extends BaseTask {
 
     @Override
-    public void execute(ByteArray input, OutputStream output) {
-        Node node = NodeStarter.runningNode;
+    public void execute(ByteArray input, DataOutputStream output) {
+        Node node = NodeStarter.systemNode;
         try {
             ReferenceNode referenceNode = node.predecessor;
             byte[] bytes = referenceNode.toByte();
-            ByteReadWriter.writeInt(output, bytes.length);
+            output.writeInt(bytes.length);
             System.out.println("sending back:" + bytes.length + " class :" + this.getClass().getSimpleName() + " data "+ Arrays.toString(bytes));
             output.write(bytes);
         } catch (IOException e) {

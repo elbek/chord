@@ -1,5 +1,6 @@
 package org.elbek.chord.core;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -8,8 +9,8 @@ import java.io.OutputStream;
  */
 public class StateTask extends BaseTask {
     @Override
-    public void execute(ByteArray input, OutputStream output) {
-        Node node = NodeStarter.runningNode;
+    public void execute(ByteArray input, DataOutputStream output) {
+        Node node = NodeStarter.systemNode;
         StringBuilder stringBuilder = new StringBuilder();
         char[] chars = new char[50];
         stringBuilder.append(System.lineSeparator());
@@ -61,7 +62,7 @@ public class StateTask extends BaseTask {
         }
         byte[] bytes = stringBuilder.toString().getBytes();
         try {
-            ByteReadWriter.writeInt(output, bytes.length);
+            output.writeInt(bytes.length);
             output.write(bytes);
         } catch (IOException e) {
             e.printStackTrace();

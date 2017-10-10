@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
  * Created by elbek on 9/10/17.
  */
 public class NodeStarter {
-    static Node runningNode;
+    static Node systemNode;
     static private ExecutorService nodeService = Executors.newFixedThreadPool(1);
     static private ScheduledExecutorService stabilizerService = Executors.newSingleThreadScheduledExecutor();
     static private ScheduledExecutorService fixFingerService = Executors.newSingleThreadScheduledExecutor();
@@ -56,14 +56,14 @@ public class NodeStarter {
             printHelp();
             return;
         }
-        runningNode = new Node(starter);
-        nodeService.submit(runningNode);
+        systemNode = new Node(starter);
+        nodeService.submit(systemNode);
 
         stabilizerService.scheduleWithFixedDelay(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Stabilizer.stabilize(runningNode);
+                    Stabilizer.stabilize(systemNode);
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
@@ -74,7 +74,7 @@ public class NodeStarter {
             @Override
             public void run() {
                 try {
-                    Stabilizer.fixFingers(runningNode);
+                    Stabilizer.fixFingers(systemNode);
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
@@ -88,7 +88,7 @@ public class NodeStarter {
     }
 
     void stop() throws IOException {
-        runningNode.stop();
+        systemNode.stop();
         nodeService.shutdown();
         stabilizerService.shutdown();
         fixFingerService.shutdown();

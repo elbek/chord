@@ -8,18 +8,18 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
- * this class is wrapper for socket class that provides thread safe access with call back function
+ * this class is wrapper for socket class that provides thread safe access with call back function thus enabling reuse of the same socket while making usage thread safe
  * Created by elbek on 9/22/17.
  */
-public class SocketTaskRunner implements Runnable {
+public class SocketRunner implements Runnable {
     private ReferenceNode referenceNode;
     private int maxRetry = 2;
     private Socket socket;
     private volatile boolean stop = false;
     private BlockingDeque<SocketTask> tasks = new LinkedBlockingDeque<>();
 
-    public SocketTaskRunner(Socket socket, ReferenceNode referenceNode) {
-        this.socket = socket;
+    public SocketRunner(ReferenceNode referenceNode) throws IOException {
+        this.socket = referenceNode.newSocket();
         this.referenceNode = referenceNode;
     }
 
@@ -35,7 +35,7 @@ public class SocketTaskRunner implements Runnable {
                     break;
                 }
                 socketTask = tasks.take();
-                socketTask.doIt(socket);
+                socketTask.doIt(socket, referenceNode);
                 currentTry = 0;
                 releaseLatch = true;
             } catch (InterruptedException e) {
@@ -57,8 +57,8 @@ public class SocketTaskRunner implements Runnable {
                 }
                 e.printStackTrace();
             } finally {
-                if (releaseLatch && socketTask != null && socketTask.countDownLatch != null) {
-                    socketTask.countDownLatch.countDown();
+                if (releaseLatch && socketTask != null && socketTask.latch != null) {
+                    socketTask.latch.countDown();
                 }
             }
         }
@@ -77,6 +77,14 @@ public class SocketTaskRunner implements Runnable {
         socket.connect(new InetSocketAddress(referenceNode.host, referenceNode.port));
     }
 
+    /**
+     * add task to task queue
+     * returns true if it was able to add, false if socket is already stopped
+     * To add properly use {@link SocketRunner#add(ReferenceNode, SocketTask)} method
+     *
+     * @param task
+     * @return
+     */
     public boolean add(SocketTask task) {
         if (stop) {
             return false;
@@ -86,11 +94,16 @@ public class SocketTaskRunner implements Runnable {
     }
 
     @Override
+    public String toString() {
+        return "SocketRunner{" + referenceNode + '}';
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        SocketTaskRunner that = (SocketTaskRunner) o;
+        SocketRunner that = (SocketRunner) o;
 
         return referenceNode.equals(that.referenceNode);
     }
@@ -110,34 +123,49 @@ public class SocketTaskRunner implements Runnable {
     }
 
     public static abstract class SocketTask {
-        CountDownLatch countDownLatch;
+        CountDownLatch latch;
 
         public SocketTask() {
         }
 
-        public SocketTask(CountDownLatch countDownLatch) {
-            this.countDownLatch = countDownLatch;
+        public SocketTask(CountDownLatch latch) {
+            this.latch = latch;
         }
 
-        abstract void doIt(Socket socket) throws IOException;
+        abstract void doIt(Socket socket, ReferenceNode referenceNode) throws IOException;
     }
+
+    public interface Resolver {
+        ReferenceNode resolve();
+    }
+
 
     /**
      * this method tries to add socket task to socket task runner object of reference node
      * it repeats until it succeeds
-     * @param node, system node
-     * @param referenceNode, make sure this node is not node.self node.
-     * @param socketTask task that runs in SocketTaskRunner
+     *
+     * @param resolver,  the functor class to resolve Reference node
+     * @param socketTask task that runs in SocketRunner
      */
-    public static void add (Node node, ReferenceNode referenceNode, SocketTask socketTask) {
-        assert referenceNode!=null && !referenceNode.equals(node.self) : "wrong reference used";
-        SocketTaskRunner socketTaskRunner;
+    public static void add(Resolver resolver, SocketTask socketTask) throws IOException {
+        Node node = NodeStarter.systemNode;
+        SocketRunner socketRunner;
         do {
-            socketTaskRunner = node.fingerTable.getSocketRunner(referenceNode);
-            if (socketTaskRunner!=null && socketTaskRunner.add(socketTask)) {
+            ReferenceNode resolvedNode = resolver.resolve();
+            if (resolvedNode == null) {
+                continue;
+            }
+            if (resolvedNode.isSelfNode()) { //looks like no socket needed
+                socketTask.doIt(null, resolvedNode);
+                if (socketTask.latch != null) {
+                    socketTask.latch.countDown();
+                }
+                break;
+            }
+            socketRunner = node.getSocketManager().getSocketRunner(resolvedNode);
+            if (socketRunner != null && socketRunner.add(socketTask)) {
                 return;
             }
-
         } while (true);
     }
 }

@@ -15,76 +15,78 @@ public class TaskRunner implements Runnable {
     }
 
     public void run() {
-        InputStream input = null;
-        OutputStream output = null;
+        InputStream input;
+        boolean broken = false;
+        DataOutputStream output = null;
         try {
             //clientSocket.setSoTimeout(1000 * 60 * 5);
-            input = clientSocket.getInputStream();
-            DataInputStream dis = new DataInputStream(new BufferedInputStream(input));
-            int len = dis.readInt();
-            Logger.debug("message len came:" + len);
-            byte bytes[] = new byte[len];
-            dis.readFully(bytes);
-            ByteArray byteArray = new ByteArray(bytes);
-            int keepAliveFlag = byteArray.read();
+            while (!broken) {
+                input = clientSocket.getInputStream();
+                DataInputStream dis = new DataInputStream(new BufferedInputStream(input));
+                output = new DataOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
+                int len = dis.readInt();
+                Logger.debug("message len came:" + len);
+                byte bytes[] = new byte[len];
+                dis.readFully(bytes);
+                ByteArray byteArray = new ByteArray(bytes);
+                int keepAliveFlag = byteArray.read();
 
-            if (keepAliveFlag != 1) {
+                if (keepAliveFlag != 1) {
+                    assert keepAliveFlag == 2 : "keeAliveFlag is invalid, got=" + keepAliveFlag;
+                    broken = true;
+                }
+                int hostDataLen = byteArray.read();
+
+                byte[] hostData = new byte[hostDataLen];
+                byteArray.read(hostData);
+
+                int task = byteArray.read();
+
+                TASKS taskEnum = TASKS.find(task);
+                assert taskEnum != null;
+                Logger.debug(String.format("%s task came from %s", taskEnum.name(), new String(hostData)) + " len=" + len);
+
+                switch (taskEnum) {
+                    case OK:
+                        String message = "OK";
+                        output.writeInt(message.getBytes().length);
+                        output.write(message.getBytes());
+                        break;
+                    case RETRIEVE_SUCCESSOR:
+                        new SuccessorRetrieverTask().execute(byteArray, output);
+                        break;
+                    case SUCCESSOR_FINDER:
+                        new SuccessorFinderTask().execute(byteArray, output);
+                        break;
+
+                    case PREDECESSOR_FINDER:
+                        new PredecessorFinderTask().execute(byteArray, output);
+                        break;
+
+                    case PREDECESSOR_UPDATE:
+                        new PredecessorUpdateTask().execute(byteArray, output);
+                        break;
+
+                    case JOIN:
+                        new JoinTask().execute(byteArray, output);
+                        break;
+                    case STATE:
+                        new StateTask().execute(byteArray, output);
+                        break;
+                    case RETRIEVE_PREDECESSOR:
+                        new PredecessorRetrieverTask().execute(byteArray, output);
+                        break;
+                }
+                output.flush();
             }
-            int hostDataLen = byteArray.read();
-
-            byte[] hostData = new byte[hostDataLen];
-            byteArray.read(hostData);
-
-            int task = byteArray.read();
-            output = clientSocket.getOutputStream();
-
-            TASKS taskEnum = TASKS.find(task);
-            assert taskEnum != null;
-            Logger.debug(String.format("%s task came from %s", taskEnum.name(), new String(hostData)) + " len=" + len);
-
-            switch (taskEnum) {
-                case OK:
-                    String message = "OK";
-                    ByteReadWriter.writeInt(output, message.getBytes().length);
-                    output.write(message.getBytes());
-                    break;
-                case RETRIEVE_SUCCESSOR:
-                    new SuccessorRetrieverTask().execute(byteArray, output);
-                    break;
-                case SUCCESSOR_FINDER:
-                    new SuccessorFinderTask().execute(byteArray, output);
-                    break;
-
-                case PREDECESSOR_FINDER:
-                    new PredecessorFinderTask().execute(byteArray, output);
-                    break;
-
-                case PREDECESSOR_UPDATE:
-                    new PredecessorUpdateTask().execute(byteArray, output);
-                    break;
-
-                case JOIN:
-                    new JoinTask().execute(byteArray, output);
-                    break;
-                case STATE:
-                    new StateTask().execute(byteArray, output);
-                    break;
-                case RETRIEVE_PREDECESSOR:
-                    new PredecessorRetrieverTask().execute(byteArray, output);
-                    break;
-            }
-        } catch (Throwable e) {
+        } catch (IOException e) {
             e.printStackTrace();
             //clientSocket.close();
             //TODO
         } finally {
             try {
-                if (output != null) {
-                    output.flush();
-                }
                 clientSocket.close();
             } catch (IOException ignore) {
-
             }
         }
     }

@@ -1,5 +1,7 @@
 package org.elbek.chord.core;
 
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -41,7 +43,6 @@ public class ClientHelper {
 
     public static void sentMessage(TASKS tasks, byte[] message, Socket socket, boolean keepAlive) throws IOException {
         ClientByteArray byteArray = new ClientByteArray(100);
-
         byteArray.write(keepAlive ? 1 : 2);
         String client = "client";
         byteArray.write(client.getBytes().length);
@@ -52,8 +53,8 @@ public class ClientHelper {
             byteArray.write(message);
         }
         System.out.println("sending task :" + tasks.name() + " to " + String.format("%s:%d", socket.getInetAddress().getHostName(), socket.getPort()) + " size " + byteArray.size());
-        OutputStream out = socket.getOutputStream();
-        ByteReadWriter.writeInt(out, byteArray.size());
+        DataOutputStream out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+        out.writeInt(byteArray.size());
         out.write(byteArray.getBytes(), 0, byteArray.size());
         out.flush();
     }

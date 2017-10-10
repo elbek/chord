@@ -40,7 +40,7 @@ public class LookUpCommand extends Command {
             int len = dis.readInt();
             byte bytes[] = new byte[len];
             dis.readFully(bytes);
-            state.println("host and port is: "+ new String(bytes));
+            state.println("host and port is: " + new String(bytes));
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -65,4 +65,13 @@ public class ReferenceNode {
         socket.connect(new InetSocketAddress(host, port));
         return socket;
     }
+
+    /**
+     * returns true if this node is equal to currently running node
+     *
+     * @return
+     */
+    public boolean isSelfNode() {
+        return NodeStarter.systemNode.self.equals(this);
+    }
 }

@@ -5,6 +5,6 @@ package org.elbek.chord.core;
  */
 public class Logger {
     public static void debug(String message) {
-        System.out.println(String.format("<%s:%d> %s", NodeStarter.runningNode.self.host, NodeStarter.runningNode.self.port, message));
+        System.out.println(String.format("<%s:%d> %s", NodeStarter.systemNode.self.host, NodeStarter.systemNode.self.port, message));
     }
 }

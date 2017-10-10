@@ -1,5 +1,6 @@
 package org.elbek.chord.core;
 
+import java.io.DataOutputStream;
 import java.io.OutputStream;
 
 /**
@@ -7,5 +8,5 @@ import java.io.OutputStream;
  */
 public abstract class BaseTask {
 
-    public abstract void execute(ByteArray input, OutputStream output);
+    public abstract void execute(ByteArray input, DataOutputStream output);
 }

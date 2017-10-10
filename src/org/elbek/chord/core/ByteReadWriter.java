@@ -41,13 +41,6 @@ public class ByteReadWriter {
         byteArray.write((byte) i);
     }
 
-    public static void writeInt(OutputStream out, int i) throws IOException {
-        out.write((byte) (i >>> 24));
-        out.write((byte) (i >>> 16));
-        out.write((byte) (i >>> 8));
-        out.write((byte) i);
-    }
-
     public static class EarlyBytesTerminatedException extends IOException {
 
     }
