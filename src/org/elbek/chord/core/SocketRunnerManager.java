@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * Manager class for managing pooled socket runner objects
+ * it offers helpful methods for swapping, adding and removing socket mapped SocketRunner objects
  * Created by elbek on 10/9/17.
  */
 public class SocketRunnerManager {
