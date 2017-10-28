@@ -1,4 +1,4 @@
-package org.elbek.chord.core;
+package org.elbek.chord.client;
 
 /**
  * Created by elbek on 9/21/17.

@@ -1,13 +1,13 @@
-package org.elbek.chord.core;
+package org.elbek.chord.client;
 
-import org.elbek.chord.core.commands.Command;
-import org.elbek.chord.core.commands.CommandFactory;
+import org.elbek.chord.client.commands.Command;
+import org.elbek.chord.client.commands.CommandFactory;
 
 /**
  * Created by elbek on 9/21/17.
  */
 public abstract class State {
-    Client client;
+    private Client client;
 
     public State(Client client) {
         this.client = client;

@@ -1,4 +1,4 @@
-package org.elbek.chord.core;
+package org.elbek.chord.client;
 
 import java.io.Console;
 import java.util.Scanner;
@@ -8,8 +8,15 @@ import java.util.Stack;
  * Created by elbek on 9/21/17.
  */
 public class Client {
-    Stack<State> stack = new Stack<>();
+    private Stack<State> stack = new Stack<>();
     Console console;
+
+    public Client() {
+        console = System.console();
+        if (console == null) {
+            System.out.println("console is not available");
+        }
+    }
 
     public Stack<State> getStack() {
         return stack;
@@ -17,10 +24,6 @@ public class Client {
 
     public static void main(String[] args) {
         Client client = new Client();
-        client.console = System.console();
-        if (client.console == null) {
-            System.out.println("console is not available");
-        }
         Stack<State> stack = client.stack;
         stack.add(new NotConnectedState(client));
         Scanner scanner = new Scanner(System.in);

@@ -1,9 +1,9 @@
-package org.elbek.chord.core.commands;
+package org.elbek.chord.client.commands;
 
-import org.elbek.chord.core.ClientHelper;
-import org.elbek.chord.core.ConnectedState;
-import org.elbek.chord.core.NotConnectedState;
-import org.elbek.chord.core.State;
+import org.elbek.chord.client.ClientHelper;
+import org.elbek.chord.client.ConnectedState;
+import org.elbek.chord.client.NotConnectedState;
+import org.elbek.chord.client.State;
 
 import java.io.IOException;
 
@@ -18,12 +18,12 @@ public class JoinCommand extends Command {
             state.println("not connected");
             return;
         }
-        if (strings.length<3) {
+        if (strings.length < 3) {
             state.println("call join command with j {host} {port} //host and port here the node that initiates the join");
             return;
         }
-        String port = strings[2];
         String host = strings[1];
+        String port = strings[2];
         try {
             int intPort = Integer.parseInt(port);
         } catch (NumberFormatException e) {
@@ -34,7 +34,7 @@ public class JoinCommand extends Command {
         assert connectedState.getSocket() != null;
         try {
             ClientHelper.sentMessage(ClientHelper.TASKS.JOIN, String.format("%s:%s", host, port).getBytes(), connectedState.getSocket(), true);
-            } catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

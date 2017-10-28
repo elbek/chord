@@ -9,14 +9,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by elbek on 9/10/17.
  */
-public class NodeStarter {
-    static Node systemNode;
-    static private ExecutorService nodeService = Executors.newFixedThreadPool(1);
-    static private ScheduledExecutorService stabilizerService = Executors.newSingleThreadScheduledExecutor();
-    static private ScheduledExecutorService fixFingerService = Executors.newSingleThreadScheduledExecutor();
-    String host = null;
-    int port = -1;
-    boolean debug = false;
+public class NodeRunner {
+    private Node systemNode;
+    private ExecutorService nodeService = Executors.newFixedThreadPool(1);
+    private ScheduledExecutorService stabilizerService = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService fixFingerService = Executors.newSingleThreadScheduledExecutor();
 
     public static void main(String[] args) {
         if (args == null) {
@@ -24,62 +21,40 @@ public class NodeStarter {
             return;
         }
         int len = args.length;
-        NodeStarter starter = new NodeStarter();
+        String host = null;
+        int port = -1;
+        boolean debug = false; //TODO, implement debug func
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
             if (arg.equals("-d")) {
-                starter.debug = true;
+                debug = true;
             } else if (arg.equals("-h")) {
                 if (i + 1 == len) {
                     printHelp();
                     return;
                 }
-                starter.host = args[i + 1];
+                host = args[i + 1];
                 i++;
             } else if (arg.equals("-p")) {
                 if (i + 1 == len) {
                     printHelp();
                     return;
                 }
-                int port;
                 try {
                     port = Integer.parseInt(args[i + 1]);
                 } catch (NumberFormatException e) {
                     System.out.println("port must be valid number");
                     return;
                 }
-                starter.port = port;
                 i++;
             }
         }
-        if (starter.host == null || starter.port == -1) {
+        if (host == null || port == -1) {
             printHelp();
             return;
         }
-        systemNode = new Node(starter);
-        nodeService.submit(systemNode);
-
-        stabilizerService.scheduleWithFixedDelay(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Stabilizer.stabilize(systemNode);
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                }
-            }
-        }, 30, 30, TimeUnit.SECONDS);
-
-        fixFingerService.scheduleWithFixedDelay(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Stabilizer.fixFingers(systemNode);
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                }
-            }
-        }, 60, 60, TimeUnit.SECONDS);
+        NodeRunner nodeRunner = new NodeRunner();
+        nodeRunner.startNode(host, port, debug);
     }
 
     private static void printHelp() {
@@ -92,5 +67,38 @@ public class NodeStarter {
         nodeService.shutdown();
         stabilizerService.shutdown();
         fixFingerService.shutdown();
+    }
+
+    public Node startNode(String host, int port, boolean debug) {
+        systemNode = new Node(host, port, debug);
+        nodeService.submit(systemNode);
+
+        stabilizerService.scheduleWithFixedDelay(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Stabilizer.stabilize(systemNode);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 5, 30, TimeUnit.SECONDS);
+
+        fixFingerService.scheduleWithFixedDelay(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Stabilizer.fixFingers(systemNode);
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 10, 60, TimeUnit.SECONDS);
+        System.out.println("Server started, server info: " + systemNode.self);
+        return systemNode;
+    }
+
+    public Node getNode() {
+        return systemNode;
     }
 }

@@ -1,7 +1,7 @@
-package org.elbek.chord.core.commands;
+package org.elbek.chord.client.commands;
 
-import org.elbek.chord.core.ConnectedState;
-import org.elbek.chord.core.State;
+import org.elbek.chord.client.ConnectedState;
+import org.elbek.chord.client.State;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -31,8 +31,7 @@ public class ConnectCommand extends Command {
             e.printStackTrace();
             return;
         }
-        ConnectedState connectedState = new ConnectedState(state.getClient());
-        connectedState.setSocket(socket);
+        ConnectedState connectedState = new ConnectedState(state.getClient(), socket);
         connectedState.getClient().getStack().push(connectedState);
         connectedState.println("you are connected");
     }

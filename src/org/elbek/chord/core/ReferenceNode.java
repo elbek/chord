@@ -71,7 +71,7 @@ public class ReferenceNode {
      *
      * @return
      */
-    public boolean isSelfNode() {
-        return NodeStarter.systemNode.self.equals(this);
+    public boolean isSelfNode(Node node) {
+        return node.self.equals(this);
     }
 }

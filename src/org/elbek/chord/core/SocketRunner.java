@@ -13,15 +13,17 @@ import java.util.concurrent.LinkedBlockingDeque;
  */
 public class SocketRunner implements Runnable {
     private ReferenceNode referenceNode;
+    private Node node;
     private int maxRetry = 2;
     private Socket socket;
     private volatile boolean stop = false;
     private BlockingDeque<SocketTask> tasks = new LinkedBlockingDeque<>();
 
     //this creates new socket, thus creating new thread on the server side, create this object with care
-    public SocketRunner(ReferenceNode referenceNode) throws IOException {
+    public SocketRunner(ReferenceNode referenceNode, Node node) throws IOException {
         this.socket = referenceNode.newSocket();
         this.referenceNode = referenceNode;
+        this.node = node;
     }
 
     @Override
@@ -148,15 +150,14 @@ public class SocketRunner implements Runnable {
      * @param resolver,  the functor class to resolve Reference node
      * @param socketTask task that runs in SocketRunner
      */
-    public static void add(Resolver resolver, SocketTask socketTask) throws IOException {
-        Node node = NodeStarter.systemNode;
+    public static void add(Resolver resolver, SocketTask socketTask, Node node) throws IOException {
         SocketRunner socketRunner;
         do {
             ReferenceNode resolvedNode = resolver.resolve();
             if (resolvedNode == null) {
                 continue;
             }
-            if (resolvedNode.isSelfNode()) { //looks like no socket needed
+            if (resolvedNode.isSelfNode(node)) { //looks like no socket needed
                 try {
                     socketTask.doIt(null, resolvedNode);
                 } finally {

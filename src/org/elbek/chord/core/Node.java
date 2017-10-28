@@ -11,23 +11,22 @@ import java.util.concurrent.Executors;
  * Created by elbek on 9/10/17.
  */
 public class Node implements Runnable {
-    BigInteger id;
-    //todo, make this private and create getter for it, so none can modify outside of this class
-    ReferenceNode predecessor;
-    ReferenceNode self;
-    FingerTable fingerTable;
-    SocketRunnerManager socketManager = new SocketRunnerManager();
-    private String host;
-    private int port;
+    final BigInteger id;
+    private ReferenceNode predecessor;
+    final ReferenceNode self;
+    final FingerTable fingerTable;
+    private SocketRunnerManager socketManager = new SocketRunnerManager(this);
+    final private String host;
+    final private int port;
     private ServerSocket serverSocket = null;
     private boolean stopped = true;
     private ExecutorService threadPool = Executors.newFixedThreadPool(100);
     private boolean debug = false;
 
-    public Node(NodeStarter nodeStarter) {
-        this.port = nodeStarter.port;
-        this.host = nodeStarter.host;
-        debug = nodeStarter.debug;
+    public Node(String host, int port, boolean debug) {
+        this.port = port;
+        this.host = host;
+        this.debug = debug;
         id = new BigInteger(1, HashUtil.SHA1(String.format("%s:%d", host, port)));
         self = new ReferenceNode(host, port);
         predecessor = self;
@@ -52,8 +51,7 @@ public class Node implements Runnable {
                 }
                 throw new RuntimeException("Error accepting core connection", e);
             }
-            execute(new TaskRunner(clientSocket));
-            System.out.println(threadPool);
+            execute(new TaskRunner(clientSocket, this));
         }
         this.threadPool.shutdown();
         System.out.println("Server Stopped.");
@@ -88,22 +86,22 @@ public class Node implements Runnable {
         if (predecessor.equals(this.predecessor)) {
             return;
         }
-        if (this.predecessor.isSelfNode()) {
+        if (this.predecessor.isSelfNode(this)) {
             socketManager.add(predecessor);
             this.predecessor = predecessor;
-            Logger.debug("updated[1] predecessor to: " + predecessor);
+            Logger.debug("updated[1] predecessor to: " + predecessor, this);
             return;
         }
 
-        if (predecessor.isSelfNode()) {
+        if (predecessor.isSelfNode(this)) {
             socketManager.remove(this.predecessor);
             this.predecessor = predecessor;
-            Logger.debug("updated[2] predecessor to: " + predecessor);
+            Logger.debug("updated[2] predecessor to: " + predecessor, this);
             return;
         }
         socketManager.swap(this.predecessor, predecessor);
         this.predecessor = predecessor;
-        Logger.debug("updated[3] predecessor to: " + predecessor);
+        Logger.debug("updated[3] predecessor to: " + predecessor, this);
     }
 
     public ReferenceNode getSuccessor() {
@@ -115,22 +113,22 @@ public class Node implements Runnable {
         if (successor.equals(oldSuccessor)) {
             return;
         }
-        if (oldSuccessor.isSelfNode()) {
+        if (oldSuccessor.isSelfNode(this)) {
             socketManager.add(successor);
             fingerTable.table[0].successor = successor;
-            Logger.debug("updated[1] successor to: " + successor);
+            Logger.debug("updated[1] successor to: " + successor, this);
             return;
         }
 
-        if (successor.isSelfNode()) {
+        if (successor.isSelfNode(this)) {
             socketManager.remove(fingerTable.table[0].successor);
             fingerTable.table[0].successor = successor;
-            Logger.debug("updated[2] successor to: " + successor);
+            Logger.debug("updated[2] successor to: " + successor, this);
             return;
         }
         socketManager.swap(fingerTable.table[0].successor, successor);
         fingerTable.table[0].successor = successor;
-        Logger.debug("updated[3] successor to: " + successor);
+        Logger.debug("updated[3] successor to: " + successor, this);
     }
 
     @Override
@@ -150,5 +148,9 @@ public class Node implements Runnable {
 
     public SocketRunnerManager getSocketManager() {
         return socketManager;
+    }
+
+    public ReferenceNode getPredecessor() {
+        return predecessor;
     }
 }

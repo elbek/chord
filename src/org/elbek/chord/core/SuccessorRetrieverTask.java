@@ -10,9 +10,12 @@ import java.util.Arrays;
  */
 public class SuccessorRetrieverTask extends BaseTask {
 
+    public SuccessorRetrieverTask(Node node) {
+        super(node);
+    }
+
     @Override
     public void execute(ByteArray input, DataOutputStream output) {
-        Node node = NodeStarter.systemNode;
         try {
             ReferenceNode referenceNode = node.getSuccessor();
             byte[] bytes = referenceNode.toByte();

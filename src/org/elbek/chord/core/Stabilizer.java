@@ -14,7 +14,7 @@ public class Stabilizer {
      */
     public static void join(Node node, ReferenceNode referenceNode) throws IOException {
         try (Socket socket = referenceNode.newSocket()) {//this new socket is short living living object, so open the socket and close it afterwards
-            SocketClientHelper.sentMessage(TaskRunner.TASKS.SUCCESSOR_FINDER, node.id.toByteArray(), socket, false);
+            SocketClientHelper.sentMessage(TaskRunner.TASKS.SUCCESSOR_FINDER, node.id.toByteArray(), node, socket, false);
             ByteArray byteArray = ByteArray.from(socket.getInputStream());
             ReferenceNode successor = ReferenceNode.read(byteArray);
             node.setSuccessor(successor);
@@ -22,12 +22,12 @@ public class Stabilizer {
     }
 
     static void fixFingers(Node node) throws IOException, InterruptedException {
-        if (node.predecessor.equals(node.self)) {
+        if (node.getPredecessor().equals(node.self)) {
             return; //looks like node hasn't totally joined to the network yet, wait until full join happens (ie succ and pre are updated with neighbour nodes in the ring)
         }
         for (int i = 1; i < node.fingerTable.table.length; i++) { //do not update successor here. ie start from 1
             FingerTable.Entry entry = node.fingerTable.table[i];
-            ReferenceNode newOne = FingerTableHelper.findSuccessor(entry.start);
+            ReferenceNode newOne = FingerTableHelper.findSuccessor(entry.start, node);
             if (!newOne.equals(entry.successor)) {
                 node.getSocketManager().swap(entry.successor, newOne);
                 entry.successor = newOne;
@@ -56,14 +56,14 @@ public class Stabilizer {
             void doIt(Socket socket, ReferenceNode resolvedNode) throws IOException {
 
                 if (socket == null) {
-                    assert resolvedNode.isSelfNode() : "socket passed null when " + resolvedNode + " is not self";
-                    ReferenceNode newSuccessor = node.predecessor; //since successor is node itself, our predecessor can be our successor.
-                    //check if new successor is between self and successor, this happens is someone updated predecessor but successor is still node itself
+                    assert resolvedNode.isSelfNode(node) : "socket passed null when " + resolvedNode + " is not self"; //this is true because only this method updates successor periodically, no concurrent updates!
+                    ReferenceNode newSuccessor = node.getPredecessor(); //since successor is node itself, our predecessor can be our successor.
+                    //check if new successor is between self and successor, this happens if someone updated predecessor but successor is still node itself
                     if (Util.isInRange(node.id, resolvedNode.id, newSuccessor.id, false, false)) {
                         node.setSuccessor(newSuccessor);
                     }
                 } else {
-                    SocketClientHelper.sentMessage(TaskRunner.TASKS.RETRIEVE_PREDECESSOR, resolvedNode.id.toByteArray(), socket, true);
+                    SocketClientHelper.sentMessage(TaskRunner.TASKS.RETRIEVE_PREDECESSOR, resolvedNode.id.toByteArray(), node, socket, true);
                     ByteArray byteArray = ByteArray.from(socket.getInputStream());
                     ReferenceNode newSuccessor = ReferenceNode.read(byteArray);
                     //check if new successor is between self and successor, if this is not ourselves
@@ -72,7 +72,7 @@ public class Stabilizer {
                     }
                 }
             }
-        });
+        }, node);
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -92,10 +92,10 @@ public class Stabilizer {
                 if (socket == null) {
                     //TODO, we should figure out what to do when socket is self node
                 } else {
-                    SocketClientHelper.sentMessage(TaskRunner.TASKS.PREDECESSOR_UPDATE, node.self.toByte(), socket, true);
+                    SocketClientHelper.sentMessage(TaskRunner.TASKS.PREDECESSOR_UPDATE, node.self.toByte(), node, socket, true);
                 }
             }
-        });
+        }, node);
         try {
             latch.await();
         } catch (InterruptedException e) {

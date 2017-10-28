@@ -11,15 +11,18 @@ import java.util.Arrays;
  */
 public class SuccessorFinderTask extends BaseTask {
 
+    public SuccessorFinderTask(Node node) {
+        super(node);
+    }
+
     @Override
     public void execute(ByteArray input, DataOutputStream output) {
-        Node node = NodeStarter.systemNode;
         try {
             int len = ByteReadWriter.readInt(input);
             byte b[] = new byte[len];
             input.read(b);
             BigInteger id = new BigInteger(b);
-            ReferenceNode referenceNode = FingerTableHelper.findSuccessor(id);
+            ReferenceNode referenceNode = FingerTableHelper.findSuccessor(id, node);
             byte[] bytes = referenceNode.toByte();
             output.writeInt(bytes.length);
             System.out.println("sending back:" + bytes.length + " class :" + this.getClass().getSimpleName());

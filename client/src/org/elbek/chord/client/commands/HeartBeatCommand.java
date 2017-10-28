@@ -1,9 +1,9 @@
-package org.elbek.chord.core.commands;
+package org.elbek.chord.client.commands;
 
-import org.elbek.chord.core.ClientHelper;
-import org.elbek.chord.core.ConnectedState;
-import org.elbek.chord.core.NotConnectedState;
-import org.elbek.chord.core.State;
+import org.elbek.chord.client.ClientHelper;
+import org.elbek.chord.client.NotConnectedState;
+import org.elbek.chord.client.ConnectedState;
+import org.elbek.chord.client.State;
 
 import java.io.IOException;
 

@@ -2,15 +2,18 @@ package org.elbek.chord.core;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 
 /**
  * Created by elbek on 9/10/17.
  */
 public class StateTask extends BaseTask {
+
+    public StateTask(Node node) {
+        super(node);
+    }
+
     @Override
     public void execute(ByteArray input, DataOutputStream output) {
-        Node node = NodeStarter.systemNode;
         StringBuilder stringBuilder = new StringBuilder();
         char[] chars = new char[50];
         stringBuilder.append(System.lineSeparator());
@@ -34,10 +37,12 @@ public class StateTask extends BaseTask {
         Util.prependString(chars, "predecessor");
         stringBuilder.append(chars);
 
-        Util.prependString(chars, node.predecessor.id.toString());
+        ReferenceNode predecessor = node.getPredecessor();
+
+        Util.prependString(chars, predecessor.id.toString());
         stringBuilder.append(chars);
 
-        Util.prependString(chars, new String(node.predecessor.toByte()));
+        Util.prependString(chars, new String(predecessor.toByte()));
         stringBuilder.append(chars);
         stringBuilder.append(System.lineSeparator());
         stringBuilder.append(System.lineSeparator());

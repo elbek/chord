@@ -10,9 +10,11 @@ import java.net.SocketException;
 public class TaskRunner implements Runnable {
 
     protected Socket clientSocket = null;
+    Node node;
 
-    public TaskRunner(Socket clientSocket) {
+    public TaskRunner(Socket clientSocket, Node node) {
         this.clientSocket = clientSocket;
+        this.node = node;
     }
 
     public void run() {
@@ -31,7 +33,7 @@ public class TaskRunner implements Runnable {
                 } catch (EOFException | SocketException e) {  //oo, client closed the socket, stop this thread
                     break;
                 }
-                Logger.debug("message len came:" + len);
+                Logger.debug("message len came:" + len, node);
                 byte bytes[] = new byte[len];
                 dis.readFully(bytes);
                 ByteArray byteArray = new ByteArray(bytes);
@@ -51,7 +53,7 @@ public class TaskRunner implements Runnable {
 
                 TASKS taskEnum = TASKS.find(task);
                 assert taskEnum != null;
-                Logger.debug(String.format("%s task came from %s", taskEnum.name(), new String(hostData)) + " len=" + len);
+                Logger.debug(String.format("%s task came from %s", taskEnum.name(), new String(hostData)) + " len=" + len, node);
 
                 switch (taskEnum) {
                     case OK:
@@ -60,28 +62,28 @@ public class TaskRunner implements Runnable {
                         output.write(message.getBytes());
                         break;
                     case RETRIEVE_SUCCESSOR:
-                        new SuccessorRetrieverTask().execute(byteArray, output);
+                        new SuccessorRetrieverTask(node).execute(byteArray, output);
                         break;
                     case SUCCESSOR_FINDER:
-                        new SuccessorFinderTask().execute(byteArray, output);
+                        new SuccessorFinderTask(node).execute(byteArray, output);
                         break;
 
                     case PREDECESSOR_FINDER:
-                        new PredecessorFinderTask().execute(byteArray, output);
+                        new PredecessorFinderTask(node).execute(byteArray, output);
                         break;
 
                     case PREDECESSOR_UPDATE:
-                        new PredecessorUpdateTask().execute(byteArray, output);
+                        new PredecessorUpdateTask(node).execute(byteArray, output);
                         break;
 
                     case JOIN:
-                        new JoinTask().execute(byteArray, output);
+                        new JoinTask(node).execute(byteArray, output);
                         break;
                     case STATE:
-                        new StateTask().execute(byteArray, output);
+                        new StateTask(node).execute(byteArray, output);
                         break;
                     case RETRIEVE_PREDECESSOR:
-                        new PredecessorRetrieverTask().execute(byteArray, output);
+                        new PredecessorRetrieverTask(node).execute(byteArray, output);
                         break;
                 }
                 output.flush();

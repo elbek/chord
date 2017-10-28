@@ -11,15 +11,20 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SocketRunnerManager {
     private Map<ReferenceNode, SocketRunner> socketRunnerMap = new ConcurrentHashMap<>();
+    Node node;
+
+    public SocketRunnerManager(Node node) {
+        this.node = node;
+    }
 
     SocketRunner getSocketRunner(ReferenceNode referenceNode) {
         return socketRunnerMap.get(referenceNode);
     }
 
     void add(ReferenceNode newNode) throws IOException {
-        assert !socketRunnerMap.containsKey(newNode) : newNode + " already exists in socket manager";
-        SocketRunner newSocketRunner = new SocketRunner(newNode);
-        NodeStarter.systemNode.execute(newSocketRunner);
+        assert !socketRunnerMap.containsKey(newNode) || node.getPredecessor() == newNode: newNode + " already exists in socket manager";
+        SocketRunner newSocketRunner = new SocketRunner(newNode, node);
+        node.execute(newSocketRunner);
         socketRunnerMap.put(newNode, newSocketRunner);
     }
 
@@ -38,8 +43,8 @@ public class SocketRunnerManager {
      */
     void swap(ReferenceNode oldNode, ReferenceNode newNode) throws IOException {
         if (!socketRunnerMap.containsKey(newNode)) {
-            SocketRunner newSocketRunner = new SocketRunner(newNode);
-            NodeStarter.systemNode.execute(newSocketRunner);
+            SocketRunner newSocketRunner = new SocketRunner(newNode, node);
+            node.execute(newSocketRunner);
             socketRunnerMap.putIfAbsent(newNode, newSocketRunner);
         }
         SocketRunner oldSocketRunner = socketRunnerMap.remove(oldNode);

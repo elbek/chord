@@ -1,4 +1,4 @@
-package org.elbek.chord.core;
+package org.elbek.chord.client;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -9,8 +9,9 @@ import java.net.Socket;
 public class ConnectedState extends State {
     private Socket socket;
 
-    public ConnectedState(Client client) {
+    public ConnectedState(Client client, Socket socket) {
         super(client);
+        this.socket = socket;
     }
 
     @Override
@@ -29,9 +30,5 @@ public class ConnectedState extends State {
 
     public Socket getSocket() {
         return socket;
-    }
-
-    public void setSocket(Socket socket) {
-        this.socket = socket;
     }
 }

@@ -9,11 +9,11 @@ import java.util.concurrent.CountDownLatch;
  * Created by elbek on 9/10/17.
  */
 public class FingerTableHelper {
-    public static ReferenceNode findSuccessor(BigInteger id) throws IOException {
-        Node node = NodeStarter.systemNode;
-        ReferenceNode predecessor = findPredecessor(id);
+    public static ReferenceNode findSuccessor(BigInteger id, Node node) throws IOException {
+        ReferenceNode predecessor = findPredecessor(id, node, node.getPredecessor());
         //check if found predecessor is sys predecessor
-        if (predecessor == node.predecessor) {
+        ReferenceNode nodePredecessor = node.getPredecessor();
+        if (predecessor == nodePredecessor) {
             return node.self;
         }
 
@@ -23,7 +23,7 @@ public class FingerTableHelper {
         }
         ReferenceNode successor;
         try (Socket socket = predecessor.newSocket()) {
-            SocketClientHelper.sentMessage(TaskRunner.TASKS.RETRIEVE_SUCCESSOR, predecessor.id.toByteArray(), socket, false);
+            SocketClientHelper.sentMessage(TaskRunner.TASKS.RETRIEVE_SUCCESSOR, predecessor.id.toByteArray(), node, socket, false);
             ByteArray byteArray = ByteArray.from(socket.getInputStream());
             successor = ReferenceNode.read(byteArray);
         }
@@ -31,11 +31,17 @@ public class FingerTableHelper {
 
     }
 
-    public static ReferenceNode findPredecessor(BigInteger id) throws IOException {
-        Node node = NodeStarter.systemNode;
+    /**
+     * @param id
+     * @param node
+     * @param predecessor of this node
+     * @return
+     * @throws IOException
+     */
+    public static ReferenceNode findPredecessor(BigInteger id, Node node, ReferenceNode predecessor) throws IOException {
         //if target id is between node and it's predecessor then node's predecessor is the predecessor of the id
-        if (Util.isInRange(node.predecessor.id, node.id, id, false, true)) {
-            return node.predecessor;
+        if (Util.isInRange(predecessor.id, node.id, id, false, true)) {
+            return predecessor;
         }
         //if id sits between node and it's successor then node itself is the predecessor
         if (Util.isInRange(node.id, node.getSuccessor().id, id, false, true)) {
@@ -43,11 +49,11 @@ public class FingerTableHelper {
         }
 
         FingerTable.Entry entry;
-        entry = closestPrecedingFinger(id);
+        entry = closestPrecedingFinger(id, node);
         assert entry != null;
         //check if this current node is successor of given id
         if (entry.successor == node.self) {
-            return node.predecessor;
+            return predecessor;
         }
         final int index = entry.index;
         assert index > 0 && index < RingHelper.m : "index=" + index + " is invalid";
@@ -62,14 +68,14 @@ public class FingerTableHelper {
             @Override
             void doIt(Socket socket, ReferenceNode referenceNode) throws IOException {
                 if (socket == null) {
-                    result[0] = node.predecessor; //TODO, investigate more and see when this might happen
+                    result[0] = predecessor; //TODO, investigate more and see when this might happen
                 } else {
-                    SocketClientHelper.sentMessage(TaskRunner.TASKS.PREDECESSOR_FINDER, id.toByteArray(), socket, true);
+                    SocketClientHelper.sentMessage(TaskRunner.TASKS.PREDECESSOR_FINDER, id.toByteArray(), node, socket, true);
                     ByteArray byteArray = ByteArray.from(socket.getInputStream());
                     result[0] = ReferenceNode.read(byteArray);
                 }
             }
-        });
+        }, node);
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -80,8 +86,7 @@ public class FingerTableHelper {
 
     }
 
-    public static FingerTable.Entry closestPrecedingFinger(BigInteger id) {
-        Node node = NodeStarter.systemNode;
+    public static FingerTable.Entry closestPrecedingFinger(BigInteger id, Node node) {
         for (int i = RingHelper.m - 1; i >= 0; i--) {
             FingerTable.Entry entry = node.fingerTable.table[i];
             if (Util.isInRange(entry.start, entry.end, id, true, false)) {

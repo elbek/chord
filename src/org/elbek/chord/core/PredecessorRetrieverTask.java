@@ -10,11 +10,14 @@ import java.util.Arrays;
  */
 public class PredecessorRetrieverTask extends BaseTask {
 
+    public PredecessorRetrieverTask(Node node) {
+        super(node);
+    }
+
     @Override
     public void execute(ByteArray input, DataOutputStream output) {
-        Node node = NodeStarter.systemNode;
         try {
-            ReferenceNode referenceNode = node.predecessor;
+            ReferenceNode referenceNode = node.getPredecessor();
             byte[] bytes = referenceNode.toByte();
             output.writeInt(bytes.length);
             System.out.println("sending back:" + bytes.length + " class :" + this.getClass().getSimpleName() + " data "+ Arrays.toString(bytes));

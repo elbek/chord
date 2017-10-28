@@ -20,16 +20,16 @@ public class SocketClientHelper {
      * @param keepAlive
      * @throws IOException
      */
-    static void sentMessage(TaskRunner.TASKS tasks, byte[] message, Socket socket, boolean keepAlive) throws IOException {
+    static void sentMessage(TaskRunner.TASKS tasks, byte[] message, Node node, Socket socket, boolean keepAlive) throws IOException {
         ByteArray byteArray = new ByteArray(100);
         byteArray.write(keepAlive ? 1 : 2);
-        byte[] hostData = NodeStarter.systemNode.self.toByte();
+        byte[] hostData = node.self.toByte();
         byteArray.write(hostData.length); //can send max of 255 bytes for hostData
         byteArray.write(hostData);
         byteArray.write(tasks.getTaskId());
         ByteReadWriter.writeInt(byteArray, message.length);
         byteArray.write(message);
-        Logger.debug("sending task :" + tasks.name() + " to " + String.format("%s:%d", socket.getInetAddress().getHostName(), socket.getPort()));
+        Logger.debug("sending task :" + tasks.name() + " to " + String.format("%s:%d", socket.getInetAddress().getHostName(), socket.getPort()), node);
 
         DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
         dos.writeInt(byteArray.size());
