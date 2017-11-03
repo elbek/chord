@@ -20,7 +20,6 @@ public class PredecessorRetrieverTask extends BaseTask {
             ReferenceNode referenceNode = node.getPredecessor();
             byte[] bytes = referenceNode.toByte();
             output.writeInt(bytes.length);
-            System.out.println("sending back:" + bytes.length + " class :" + this.getClass().getSimpleName() + " data "+ Arrays.toString(bytes));
             output.write(bytes);
         } catch (IOException e) {
             //TODO

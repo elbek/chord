@@ -25,7 +25,6 @@ public class SuccessorFinderTask extends BaseTask {
             ReferenceNode referenceNode = FingerTableHelper.findSuccessor(id, node);
             byte[] bytes = referenceNode.toByte();
             output.writeInt(bytes.length);
-            System.out.println("sending back:" + bytes.length + " class :" + this.getClass().getSimpleName());
             output.write(bytes);
         } catch (IOException e) {
             //TODO

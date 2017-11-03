@@ -21,13 +21,13 @@ public class Node implements Runnable {
     private ServerSocket serverSocket = null;
     private boolean stopped = true;
     private ExecutorService threadPool = Executors.newFixedThreadPool(100);
-    private boolean debug = false;
+    boolean debug = false;
 
     public Node(String host, int port, boolean debug) {
         this.port = port;
         this.host = host;
         this.debug = debug;
-        id = new BigInteger(1, HashUtil.SHA1(String.format("%s:%d", host, port)));
+        id = new BigInteger(1, HashUtil.SHA1(String.format("%s:%d", host, port))).mod(RingHelper.modulo);
         self = new ReferenceNode(host, port);
         predecessor = self;
         fingerTable = FingerTable.build(this, self);
@@ -69,8 +69,8 @@ public class Node implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException("Error closing server", e);
         }
-        //close open sockets
-        socketManager.close();
+        //stop open sockets
+        socketManager.stop();
     }
 
     private void openServerSocket() {

@@ -13,7 +13,7 @@ public class Stabilizer {
      * @param referenceNode the node that helps to join the node to the network
      */
     public static void join(Node node, ReferenceNode referenceNode) throws IOException {
-        try (Socket socket = referenceNode.newSocket()) {//this new socket is short living living object, so open the socket and close it afterwards
+        try (Socket socket = referenceNode.newSocket()) {//this new socket is short living living object, so open the socket and stop it afterwards
             SocketClientHelper.sentMessage(TaskRunner.TASKS.SUCCESSOR_FINDER, node.id.toByteArray(), node, socket, false);
             ByteArray byteArray = ByteArray.from(socket.getInputStream());
             ReferenceNode successor = ReferenceNode.read(byteArray);
@@ -32,7 +32,7 @@ public class Stabilizer {
                 node.getSocketManager().swap(entry.successor, newOne);
                 entry.successor = newOne;
             }
-            Thread.sleep(500); //do not hammer the socket runner with fixing, it is not that often updates happen
+//            Thread.sleep(500); //do not hammer the socket runner with fixing, it is not that often updates happen
         }
     }
 

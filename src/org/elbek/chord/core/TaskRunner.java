@@ -33,7 +33,7 @@ public class TaskRunner implements Runnable {
                 } catch (EOFException | SocketException e) {  //oo, client closed the socket, stop this thread
                     break;
                 }
-                Logger.debug("message len came:" + len, node);
+//                Logger.debug("message len came:" + len, node);
                 byte bytes[] = new byte[len];
                 dis.readFully(bytes);
                 ByteArray byteArray = new ByteArray(bytes);
@@ -41,7 +41,6 @@ public class TaskRunner implements Runnable {
 
                 if (keepAliveFlag != 1) {
                     assert keepAliveFlag == 2 : "keeAliveFlag is invalid, got=" + keepAliveFlag;
-                    System.out.println("breaking this after this run");
                     broken = true;
                 }
                 int hostDataLen = byteArray.read();
@@ -90,7 +89,7 @@ public class TaskRunner implements Runnable {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            //clientSocket.close();
+            //clientSocket.stop();
             //TODO
         } finally {
             try {

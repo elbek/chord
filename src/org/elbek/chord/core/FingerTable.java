@@ -8,6 +8,7 @@ import java.math.BigInteger;
 public class FingerTable {
     Node node;
     Entry[] table = new Entry[RingHelper.m];
+
     public FingerTable(Node node) {
         this.node = node;
     }
@@ -16,7 +17,7 @@ public class FingerTable {
         FingerTable fingerTable = new FingerTable(node);
         for (int i = 0; i < RingHelper.m; i++) {
             if (i == RingHelper.m - 1) {
-                fingerTable.table[i] = new Entry(node.id.add(RingHelper.twoPowers[i - 1]).mod(RingHelper.modulo), node.id, successor, i);
+                fingerTable.table[i] = new Entry(fingerTable.table[i - 1].end, node.id, successor, i);
             } else {
                 BigInteger start;
                 if (i == 0) {

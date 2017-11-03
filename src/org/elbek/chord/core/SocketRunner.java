@@ -34,7 +34,6 @@ public class SocketRunner implements Runnable {
             SocketTask socketTask = null;
             try {
                 if (tasks.isEmpty() && Thread.currentThread().isInterrupted()) {
-                    System.out.println("broken");
                     break;
                 }
                 socketTask = tasks.take();

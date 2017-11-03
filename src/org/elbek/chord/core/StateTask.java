@@ -19,18 +19,6 @@ public class StateTask extends BaseTask {
         stringBuilder.append(System.lineSeparator());
 
         int i = 1;
-        stringBuilder.append(i++);
-        stringBuilder.append(")");
-
-        Util.prependString(chars, "self");
-        stringBuilder.append(chars);
-
-        Util.prependString(chars, node.id.toString());
-        stringBuilder.append(chars);
-
-        Util.prependString(chars, new String(node.self.toByte()));
-        stringBuilder.append(chars);
-        stringBuilder.append(System.lineSeparator());
 
         stringBuilder.append(i++);
         stringBuilder.append(")");
@@ -45,10 +33,39 @@ public class StateTask extends BaseTask {
         Util.prependString(chars, new String(predecessor.toByte()));
         stringBuilder.append(chars);
         stringBuilder.append(System.lineSeparator());
+
+        stringBuilder.append(i++);
+        stringBuilder.append(")");
+
+        Util.prependString(chars, "self");
+        stringBuilder.append(chars);
+
+        Util.prependString(chars, node.id.toString());
+        stringBuilder.append(chars);
+
+        Util.prependString(chars, new String(node.self.toByte()));
+        stringBuilder.append(chars);
+
         stringBuilder.append(System.lineSeparator());
 
-        for (FingerTable.Entry entry : node.fingerTable.table) {
-            stringBuilder.append(i++);
+        stringBuilder.append(i++);
+        stringBuilder.append(")");
+        Util.prependString(chars, "successor");
+        stringBuilder.append(chars);
+
+        ReferenceNode successor = node.getSuccessor();
+
+        Util.prependString(chars, successor.id.toString());
+        stringBuilder.append(chars);
+
+        Util.prependString(chars, new String(successor.toByte()));
+        stringBuilder.append(chars);
+        stringBuilder.append(System.lineSeparator());
+        stringBuilder.append(System.lineSeparator());
+
+        for (int j = 1; j < node.fingerTable.table.length; j++) {
+            FingerTable.Entry entry = node.fingerTable.table[j];
+            stringBuilder.append(j);
             stringBuilder.append(") ");
             Util.prependString(chars, entry.start.toString());
             stringBuilder.append(chars);

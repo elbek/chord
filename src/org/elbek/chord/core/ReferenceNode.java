@@ -16,7 +16,7 @@ public class ReferenceNode {
     public ReferenceNode(String host, int port) {
         this.host = host;
         this.port = port;
-        this.id = new BigInteger(1, HashUtil.SHA1(String.format("%s:%d", host, port)));
+        this.id = new BigInteger(1, HashUtil.SHA1(String.format("%s:%d", host, port))).mod(RingHelper.modulo);
         ;
     }
 

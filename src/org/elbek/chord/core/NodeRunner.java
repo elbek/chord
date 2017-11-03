@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
  * Created by elbek on 9/10/17.
  */
 public class NodeRunner {
-    private Node systemNode;
+    private Node node;
     private ExecutorService nodeService = Executors.newFixedThreadPool(1);
     private ScheduledExecutorService stabilizerService = Executors.newSingleThreadScheduledExecutor();
     private ScheduledExecutorService fixFingerService = Executors.newSingleThreadScheduledExecutor();
@@ -63,42 +63,47 @@ public class NodeRunner {
     }
 
     void stop() throws IOException {
-        systemNode.stop();
+        node.stop();
         nodeService.shutdown();
         stabilizerService.shutdown();
         fixFingerService.shutdown();
     }
 
     public Node startNode(String host, int port, boolean debug) {
-        systemNode = new Node(host, port, debug);
-        nodeService.submit(systemNode);
+        node = new Node(host, port, debug);
+        nodeService.submit(node);
 
         stabilizerService.scheduleWithFixedDelay(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Stabilizer.stabilize(systemNode);
+                    Stabilizer.stabilize(node);
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
             }
-        }, 5, 30, TimeUnit.SECONDS);
+        }, 1, 2, TimeUnit.SECONDS);
 
         fixFingerService.scheduleWithFixedDelay(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Stabilizer.fixFingers(systemNode);
+                    Stabilizer.fixFingers(node);
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
             }
-        }, 10, 60, TimeUnit.SECONDS);
-        System.out.println("Server started, server info: " + systemNode.self);
-        return systemNode;
+        }, 1, 60, TimeUnit.SECONDS);
+        System.out.println("Server started, server info: " + node.self);
+        return node;
     }
 
     public Node getNode() {
-        return systemNode;
+        return node;
+    }
+
+    @Override
+    public String toString() {
+        return "NodeRunner{" + "node=" + node + '}';
     }
 }

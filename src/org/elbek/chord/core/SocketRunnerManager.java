@@ -22,7 +22,7 @@ public class SocketRunnerManager {
     }
 
     void add(ReferenceNode newNode) throws IOException {
-        assert !socketRunnerMap.containsKey(newNode) || node.getPredecessor() == newNode: newNode + " already exists in socket manager";
+        assert !socketRunnerMap.containsKey(newNode) || node.getPredecessor() == newNode : newNode + " already exists in socket manager";
         SocketRunner newSocketRunner = new SocketRunner(newNode, node);
         node.execute(newSocketRunner);
         socketRunnerMap.put(newNode, newSocketRunner);
@@ -53,10 +53,10 @@ public class SocketRunnerManager {
         }
     }
 
-    public void close() throws IOException {
+    public void stop() {
         for (ReferenceNode referenceNode : socketRunnerMap.keySet()) {
             if (getSocketRunner(referenceNode) != null) {
-                getSocketRunner(referenceNode).getSocket().close();
+                getSocketRunner(referenceNode).stop();
             }
         }
     }

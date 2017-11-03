@@ -25,7 +25,7 @@ public class BaseChordTest {
         for (int i = 0; i < n; i++) {
             NodeRunner runner = new NodeRunner();
             int port = ThreadLocalRandom.current().nextInt(10000, 65000);
-            runner.startNode("localhost", port, true);
+            runner.startNode("localhost", port, false);
             nodeRunners.add(runner);
         }
         return nodeRunners;
@@ -36,7 +36,6 @@ public class BaseChordTest {
      * @param joiner  helps joining node to join to the ring
      */
     public void join(Node joining, Node joiner) {
-        JoinCommand joinCommand = new JoinCommand();
         Socket socket = null;
         try {
             socket = joining.self.newSocket();

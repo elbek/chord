@@ -20,7 +20,6 @@ public class SuccessorRetrieverTask extends BaseTask {
             ReferenceNode referenceNode = node.getSuccessor();
             byte[] bytes = referenceNode.toByte();
             output.writeInt(bytes.length);
-            System.out.println("sending back:" + bytes.length + " class :" + this.getClass().getSimpleName());
             output.write(bytes);
         } catch (IOException e) {
             //TODO
